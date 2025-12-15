@@ -38,7 +38,27 @@ endmacro()
 
 # Locate the OptiX distribution.  Search relative to the SDK first, then look in the system.
 
-find_path(OptiX_ROOT_DIR NAMES include/optix.h PATHS ${OptiX_INSTALL_DIR})
+# Attempt to find the latest OptiX SDK automatically
+set(OPTIX_SEARCH_PATHS
+    ${OptiX_INSTALL_DIR}
+    $ENV{OptiX_INSTALL_DIR}
+)
+
+if(WIN32)
+  file(GLOB OPTIX_SDK_DIRS "C:/ProgramData/NVIDIA Corporation/OptiX SDK *")
+  if(OPTIX_SDK_DIRS)
+    list(SORT OPTIX_SDK_DIRS COMPARE STRING ORDER DESCENDING)
+    list(APPEND OPTIX_SEARCH_PATHS ${OPTIX_SDK_DIRS})
+  endif()
+elseif(UNIX)
+  file(GLOB OPTIX_SDK_DIRS "/opt/nvidia/optix*" "/usr/local/optix*")
+  if(OPTIX_SDK_DIRS)
+    list(SORT OPTIX_SDK_DIRS COMPARE STRING ORDER DESCENDING)
+    list(APPEND OPTIX_SEARCH_PATHS ${OPTIX_SDK_DIRS})
+  endif()
+endif()
+
+find_path(OptiX_ROOT_DIR NAMES include/optix.h PATHS ${OPTIX_SEARCH_PATHS})
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(OptiX

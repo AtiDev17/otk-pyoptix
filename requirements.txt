@@ -1,5 +1,5 @@
 pytest
-cupy
+cupy-cuda13x
 numpy
 Pillow
 cuda-python
