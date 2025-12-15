@@ -8,10 +8,10 @@ Python bindings for OptiX 7.
 ### Dependencies
 
 #### OptiX SDK
-Install [OptiX SDK](https://developer.nvidia.com/designworks/optix/download) version 7.6 or newer.
+Install [OptiX SDK](https://developer.nvidia.com/designworks/optix/download) version 9.1.
 
 #### CUDA SDK
-Install [CUDA SDK](https://developer.nvidia.com/cuda-downloads) version 12.6 or newer required for examples, otherwise as required by your OptiX SDK.
+Install [CUDA SDK](https://developer.nvidia.com/cuda-downloads) version 13.1 is required.
 
 #### Build system requirements:
 * [cmake](https://cmake.org/)
@@ -26,7 +26,7 @@ To run the PyOptiX examples or tests, the python modules specified in `PyOptiX/r
 * cuda-python 
 
 ### Virtual Environment
-In most cases, it makes sense to setup a python environment.  Below are examples of how to setup your environment via either`Conda` or `venv`.
+In most cases, it makes sense to setup a python environment. Below are examples of how to setup your environment via either`Conda` or `venv`.
 
 #### `venv` Virtual Environment
 Create and activate a new virtual environment:
@@ -54,7 +54,17 @@ pip install pynvrtc
 ```
 
 ### Building and installing the `optix` Python module
-Point `setuptools/CMake` to Optix by setting the following environment variable.
+
+The build system automatically attempts to locate the latest OptiX SDK installation in standard system directories (e.g., `C:\ProgramData\NVIDIA Corporation\OptiX SDK *` on Windows or `/opt/nvidia/optix*` on Linux).
+
+Build and install using `pip` and `setuptools.py`:
+```
+cd optix
+pip install .
+```
+
+#### Manual Configuration (Optional)
+If the auto-detection fails or you installed the SDK in a non-standard location, you can point `setuptools/CMake` to your OptiX installation by setting the `PYOPTIX_CMAKE_ARGS` environment variable.
 
 Linux:
 ```
@@ -62,13 +72,7 @@ export PYOPTIX_CMAKE_ARGS="-DOptiX_INSTALL_DIR=<optix install dir>"
 ```
 Windows:
 ```
-set PYOPTIX_CMAKE_ARGS=-DOptiX_INSTALL_DIR=C:\ProgramData\NVIDIA Corporation\OptiX SDK 7.0.0
-```
-
-Build and install using `pip` and `setuptools.py`:
-```
-cd optix
-pip install .
+set PYOPTIX_CMAKE_ARGS=-DOptiX_INSTALL_DIR=C:\ProgramData\NVIDIA Corporation\OptiX SDK 9.1.0
 ```
 
 When compiling against an Optix 7.0 SDK an additional environment variable needs to be set
