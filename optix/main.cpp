@@ -146,7 +146,7 @@ struct DeviceContextOptions
     DeviceContextOptions(
        py::object log_callback_function,
        int32_t    log_callback_level
-       IF_OPTIX72( COMMA OptixDeviceContextValidationMode validation_mode )
+        COMMA OptixDeviceContextValidationMode validation_mode
        )
     {
         logCallbackFunction         = log_callback_function;
@@ -157,7 +157,7 @@ struct DeviceContextOptions
         }
 
         options.logCallbackLevel    = log_callback_level;
-        IF_OPTIX72( options.validationMode      = validation_mode; )
+         options.validationMode      = validation_mode;
     }
 
 
@@ -184,7 +184,7 @@ struct BuildInputTriangleArray
         unsigned int           sbtIndexOffsetSizeInBytes,
         unsigned int           sbtIndexOffsetStrideInBytes,
         unsigned int           primitiveIndexOffset
-        IF_OPTIX71( COMMA OptixTransformFormat   transformFormat )
+         COMMA OptixTransformFormat   transformFormat
         )
     {
         memset(&build_input, 0, sizeof(OptixBuildInputTriangleArray));
@@ -203,9 +203,9 @@ struct BuildInputTriangleArray
         build_input.sbtIndexOffsetStrideInBytes = sbtIndexOffsetStrideInBytes;
         build_input.primitiveIndexOffset        = primitiveIndexOffset;
         build_input.numSbtRecords               = numSbtRecords;
-        IF_OPTIX71( 
+
         build_input.transformFormat             = transformFormat;
-        )
+
     }
 
     void sync()
@@ -386,7 +386,9 @@ struct MotionOptions
 {
     MotionOptions() {}
     MotionOptions( const OptixMotionOptions& other ) 
-    { options = other; }
+    {
+        options = other;
+    }
 
     MotionOptions(
         uint32_t numKeys,
@@ -564,7 +566,7 @@ struct PipelineCompileOptions
         int32_t   numAttributeValues,
         uint32_t  exceptionFlags,
         const char* pipelineLaunchParamsVariableName_
-        IF_OPTIX71( COMMA int32_t  usesPrimitiveTypeFlags )
+         COMMA int32_t  usesPrimitiveTypeFlags
         )
     {
         options.usesMotionBlur         = usesMotionBlur;
@@ -572,9 +574,9 @@ struct PipelineCompileOptions
         options.numPayloadValues       = numPayloadValues;
         options.numAttributeValues     = numAttributeValues;
         options.exceptionFlags         = exceptionFlags;
-        IF_OPTIX71(
+
         options.usesPrimitiveTypeFlags = usesPrimitiveTypeFlags;
-        )
+
         if( pipelineLaunchParamsVariableName_ )
             pipelineLaunchParamsVariableName =
                 pipelineLaunchParamsVariableName_;
@@ -777,8 +779,8 @@ struct ModuleCompileOptions
         int32_t                       maxRegisterCount,
         OptixCompileOptimizationLevel optLevel,
         OptixCompileDebugLevel        debugLevel
-        IF_OPTIX72( COMMA std::vector<pyoptix::ModuleCompileBoundValueEntry>&& bound_values )
-        IF_OPTIX74( COMMA std::vector<pyoptix::PayloadType>&& payload_types )
+         COMMA std::vector<pyoptix::ModuleCompileBoundValueEntry>&& bound_values
+         COMMA std::vector<pyoptix::PayloadType>&& payload_types
         )
     {
         memset(&options, 0, sizeof(OptixModuleCompileOptions));
@@ -786,13 +788,11 @@ struct ModuleCompileOptions
         options.optLevel         = optLevel;
         options.debugLevel       = debugLevel;
 
-        IF_OPTIX72(
-        pyboundValues = std::move( bound_values );
-        )
+         pyboundValues = std::move( bound_values );
 
-        IF_OPTIX74(
+
         pypayloadTypes = std::move( payload_types );
-        )
+
     }
 
 
@@ -847,14 +847,14 @@ struct BuiltinISOptions
     BuiltinISOptions(
         OptixPrimitiveType              builtinISModuleType,
         int                             usesMotionBlur
-        IF_OPTIX74( COMMA unsigned int  buildFlags )
-        IF_OPTIX74( COMMA unsigned int  curveEndcapFlags )
+         COMMA unsigned int  buildFlags
+         COMMA unsigned int  curveEndcapFlags
         )
     {
         options.builtinISModuleType          = builtinISModuleType;
         options.usesMotionBlur               = usesMotionBlur;
-        IF_OPTIX74( options.buildFlags       = buildFlags; )
-        IF_OPTIX74( options.curveEndcapFlags = curveEndcapFlags; )
+         options.buildFlags       = buildFlags;
+         options.curveEndcapFlags = curveEndcapFlags;
     }
     OptixBuiltinISOptions options{};
 };
@@ -1393,7 +1393,6 @@ py::tuple moduleCreate(
 
 
 
-
 void moduleDestroy(
        pyoptix::Module module
     )
@@ -1433,7 +1432,7 @@ pyoptix::Module builtinISModuleGet(
 
 pyoptix::StackSizes programGroupGetStackSize(
        pyoptix::ProgramGroup programGroup
-       IF_OPTIX77( COMMA pyoptix::Pipeline pipeline )
+        COMMA pyoptix::Pipeline pipeline
     )
 {
     pyoptix::StackSizes sizes;
@@ -1441,7 +1440,7 @@ pyoptix::StackSizes programGroupGetStackSize(
         optixProgramGroupGetStackSize(
             programGroup.programGroup,
             &sizes.ss
-            IF_OPTIX77( COMMA pipeline.pipeline )
+             COMMA pipeline.pipeline
         )
     );
     return sizes;
@@ -1450,7 +1449,7 @@ pyoptix::StackSizes programGroupGetStackSize(
 py::tuple programGroupCreate(
        pyoptix::DeviceContext context,
        const py::list&        programDescriptions
-       IF_OPTIX74( COMMA std::optional<pyoptix::ProgramGroupOptions> options )
+        COMMA std::optional<pyoptix::ProgramGroupOptions> options
     )
 {
     size_t log_buf_size = LOG_BUFFER_MAX_SIZE;
@@ -2101,13 +2100,13 @@ namespace util
 void accumulateStackSizes(
         pyoptix::ProgramGroup programGroup,
         pyoptix::StackSizes&  stackSizes
-        IF_OPTIX77( COMMA pyoptix::Pipeline pipeline )
+        COMMA pyoptix::Pipeline pipeline
         )
 {
     PYOPTIX_CHECK(
         optixUtilAccumulateStackSizes( programGroup.programGroup, 
                                        &stackSizes.ss
-                                       IF_OPTIX77( COMMA pipeline.pipeline )
+                                        COMMA pipeline.pipeline
           )
     );
     
@@ -2217,7 +2216,7 @@ py::tuple computeStackSizesSimplePathTracer(
         py::list                     programGroupCH1,
         pyoptix::ProgramGroup        programGroupMS2,
         py::list                     programGroupCH2 
-        IF_OPTIX77( COMMA pyoptix::Pipeline pipeline )
+        COMMA pyoptix::Pipeline pipeline
         )
 {
     unsigned int directCallableStackSizeFromTraversal;
@@ -2245,7 +2244,7 @@ py::tuple computeStackSizesSimplePathTracer(
             &directCallableStackSizeFromTraversal,
             &directCallableStackSizeFromState,
             &continuationStackSize
-            IF_OPTIX77( COMMA pipeline.pipeline )
+            COMMA pipeline.pipeline
             )
         );
 
@@ -2464,17 +2463,17 @@ PYBIND11_MODULE( optix, m )
         .export_values();
 
     py::enum_<OptixIndicesFormat>(m, "IndicesFormat", py::arithmetic())
-        IF_OPTIX71(
+        
         .value( "INDICES_FORMAT_NONE", OPTIX_INDICES_FORMAT_NONE )
-        )
+        
         .value( "INDICES_FORMAT_UNSIGNED_SHORT3", OPTIX_INDICES_FORMAT_UNSIGNED_SHORT3 )
         .value( "INDICES_FORMAT_UNSIGNED_INT3", OPTIX_INDICES_FORMAT_UNSIGNED_INT3 )
         .export_values();
 
     py::enum_<OptixVertexFormat>(m, "VertexFormat", py::arithmetic())
-        IF_OPTIX71(
+        
         .value( "VERTEX_FORMAT_NONE", OPTIX_VERTEX_FORMAT_NONE )
-        )
+        
         .value( "VERTEX_FORMAT_FLOAT3", OPTIX_VERTEX_FORMAT_FLOAT3 )
         .value( "VERTEX_FORMAT_FLOAT2", OPTIX_VERTEX_FORMAT_FLOAT2 )
         .value( "VERTEX_FORMAT_HALF3", OPTIX_VERTEX_FORMAT_HALF3 )
@@ -2511,9 +2510,9 @@ PYBIND11_MODULE( optix, m )
         .value( "BUILD_INPUT_TYPE_CUSTOM_PRIMITIVES", OPTIX_BUILD_INPUT_TYPE_CUSTOM_PRIMITIVES )
         .value( "BUILD_INPUT_TYPE_INSTANCES", OPTIX_BUILD_INPUT_TYPE_INSTANCES )
         .value( "BUILD_INPUT_TYPE_INSTANCE_POINTERS", OPTIX_BUILD_INPUT_TYPE_INSTANCE_POINTERS )
-        IF_OPTIX71(
+        
         .value( "BUILD_INPUT_TYPE_CURVES", OPTIX_BUILD_INPUT_TYPE_CURVES )
-        )
+        
         .export_values();
 
     py::enum_<OptixInstanceFlags>(m, "InstanceFlags", py::arithmetic())
@@ -2574,8 +2573,8 @@ PYBIND11_MODULE( optix, m )
         .value( "DENOISER_MODEL_KIND_LDR", OPTIX_DENOISER_MODEL_KIND_LDR )
         .value( "DENOISER_MODEL_KIND_HDR", OPTIX_DENOISER_MODEL_KIND_HDR )
         .value( "DENOISER_MODEL_KIND_AOV", OPTIX_DENOISER_MODEL_KIND_AOV )
-        IF_OPTIX73( .value( "DENOISER_MODEL_KIND_TEMPORAL", OPTIX_DENOISER_MODEL_KIND_AOV ) )
-        IF_OPTIX74( .value( "DENOISER_MODEL_KIND_TEMPORAL_AOV", OPTIX_DENOISER_MODEL_KIND_AOV ) )
+         .value( "DENOISER_MODEL_KIND_TEMPORAL", OPTIX_DENOISER_MODEL_KIND_AOV )
+         .value( "DENOISER_MODEL_KIND_TEMPORAL_AOV", OPTIX_DENOISER_MODEL_KIND_AOV )
         .export_values();
 
     py::enum_<OptixRayFlags>(m, "RayFlags", py::arithmetic())
@@ -2613,9 +2612,9 @@ PYBIND11_MODULE( optix, m )
         .export_values();
 
     py::enum_<OptixCompileDebugLevel>(m, "CompileDebugLevel", py::arithmetic())
-        IF_OPTIX71(
+
         .value( "COMPILE_DEBUG_LEVEL_DEFAULT",  OPTIX_COMPILE_DEBUG_LEVEL_DEFAULT  )
-        )
+
         .value( "COMPILE_DEBUG_LEVEL_NONE",     OPTIX_COMPILE_DEBUG_LEVEL_NONE     )
 #if OPTIX_VERSION < 70400
         .value( "COMPILE_DEBUG_LEVEL_LINEINFO", OPTIX_COMPILE_DEBUG_LEVEL_LINEINFO )
@@ -2741,14 +2740,14 @@ py::enum_<OptixExceptionCodes>(m, "ExceptionCodes", py::arithmetic())
         .def( "moduleCreateFromPTX", &pyoptix::moduleCreate )
 #endif
         .def( "moduleCreate", &pyoptix::moduleCreate )
-        IF_OPTIX71(
+
         .def( "builtinISModuleGet", &pyoptix::builtinISModuleGet )
-        )
+
         .def( 
             "programGroupCreate", 
             &pyoptix::programGroupCreate,
             py::arg( "programDescriptions" )=py::list()
-            IF_OPTIX74( COMMA py::arg( "options" )=py::none()  )
+             COMMA py::arg( "options" )=py::none() 
         )
         .def( "accelComputeMemoryUsage", &pyoptix::accelComputeMemoryUsage )
         .def( "accelBuild", &pyoptix::accelBuild )
@@ -2787,7 +2786,7 @@ py::enum_<OptixExceptionCodes>(m, "ExceptionCodes", py::arithmetic())
         .def( "invoke", &pyoptix::denoiserInvoke )
         .def( "computeIntensity", &pyoptix::denoiserComputeIntensity )
         .def( "invokeTiled", &pyoptix::denoiserInvokeTiled )
-        IF_OPTIX73( .def( "computeAverageColor", &pyoptix::denoiserComputeAverageColor ) )
+         .def( "computeAverageColor", &pyoptix::denoiserComputeAverageColor )
         .def(py::self == py::self)
         ;
 
@@ -2803,7 +2802,7 @@ py::enum_<OptixExceptionCodes>(m, "ExceptionCodes", py::arithmetic())
             py::init< py::object, int32_t, OptixDeviceContextValidationMode>(),
             py::arg( "logCallbackFunction" )=py::none(),
             py::arg( "logCallbackLevel"    )=0,
-            IF_OPTIX72( py::arg( "validationMode" )=OPTIX_DEVICE_CONTEXT_VALIDATION_MODE_OFF )
+             py::arg( "validationMode" )=OPTIX_DEVICE_CONTEXT_VALIDATION_MODE_OFF
         )
         .def_property( "logCallbackFunction",
             [](const pyoptix::DeviceContextOptions& self)
@@ -2834,7 +2833,7 @@ py::enum_<OptixExceptionCodes>(m, "ExceptionCodes", py::arithmetic())
 
     py::class_<pyoptix::BuildInputTriangleArray>(m, "BuildInputTriangleArray")
         .def(
-            py::init<
+            py::init< 
                 const py::list&,
                 OptixVertexFormat,
                 unsigned int,
@@ -2849,7 +2848,7 @@ py::enum_<OptixExceptionCodes>(m, "ExceptionCodes", py::arithmetic())
                 unsigned int,
                 unsigned int,
                 unsigned int
-                IF_OPTIX71( COMMA  OptixTransformFormat )
+                 COMMA  OptixTransformFormat
             >(),
             py::arg( "vertexBuffers_"              ) = py::list(), // list of CUdeviceptr
             py::arg( "vertexFormat"                ) = 
@@ -2869,9 +2868,8 @@ py::enum_<OptixExceptionCodes>(m, "ExceptionCodes", py::arithmetic())
             py::arg( "sbtIndexOffsetSizeInBytes"   ) = 0u,
             py::arg( "sbtIndexOffsetStrideInBytes" ) = 0u,
             py::arg( "primitiveIndexOffset"        ) = 0u
-            IF_OPTIX71( COMMA  
+             COMMA  
             py::arg( "transformFormat"             ) = OPTIX_TRANSFORM_FORMAT_NONE
-            )
         )
         .def_property( "vertexBuffers",
             []( const pyoptix::BuildInputTriangleArray& self )
@@ -3104,7 +3102,7 @@ py::enum_<OptixExceptionCodes>(m, "ExceptionCodes", py::arithmetic())
     py::class_<pyoptix::BuildInputCustomPrimitiveArray>(m, "BuildInputCustomPrimitiveArray")
         .def( 
             py::init< 
-                const py::list&,
+                const py::list&, 
                 unsigned int,
                 unsigned int,
                 const py::list&,
@@ -3205,9 +3203,9 @@ py::enum_<OptixExceptionCodes>(m, "ExceptionCodes", py::arithmetic())
             { self.setInstancePointers( val ); }
             )
         .def_property( "numInstances", 
-            []( const pyoptix::BuildInputInstanceArray& self ) 
+            []( const pyoptix::BuildInputInstanceArray& self )
             { return self.build_input.numInstances; }, 
-            [](pyoptix::BuildInputInstanceArray& self, unsigned int val) 
+            [](pyoptix::BuildInputInstanceArray& self, unsigned int val)
             { self.build_input.numInstances = val; }
             )
         ;
@@ -3230,7 +3228,7 @@ py::enum_<OptixExceptionCodes>(m, "ExceptionCodes", py::arithmetic())
 
 
     py::class_<pyoptix::Instance>(m, "Instance")
-        .def( 
+        .def(
             py::init< 
                 const py::list&, // 12 floats
                 uint32_t,
@@ -3287,10 +3285,11 @@ py::enum_<OptixExceptionCodes>(m, "ExceptionCodes", py::arithmetic())
 
     py::class_<OptixMotionOptions>(m, "MotionOptions")
         .def( py::init(
-                []( uint32_t numKeys,
+                [](
+                    uint32_t numKeys,
                     uint32_t flags,
-                    float timeBegin,
-                    float timeEnd 
+                    float    timeBegin,
+                    float    timeEnd 
                     )
                 {
                     auto opts = std::unique_ptr<OptixMotionOptions>(new OptixMotionOptions{} );
@@ -3346,7 +3345,7 @@ py::enum_<OptixExceptionCodes>(m, "ExceptionCodes", py::arithmetic())
 
 
     py::class_<pyoptix::AccelEmitDesc>(m, "AccelEmitDesc")
-        .def( 
+        .def(
             py::init< 
                 CUdeviceptr,
                 OptixAccelPropertyType 
@@ -3361,9 +3360,9 @@ py::enum_<OptixExceptionCodes>(m, "ExceptionCodes", py::arithmetic())
             { self.desc.result = val; }
             )
         .def_property( "type", 
-            []( const pyoptix::AccelEmitDesc& self ) 
+            []( const pyoptix::AccelEmitDesc& self )
             { return self.desc.type; }, 
-            [](pyoptix::AccelEmitDesc& self, OptixAccelPropertyType val) 
+            [](pyoptix::AccelEmitDesc& self, OptixAccelPropertyType val)
             { self.desc.type = val; }
             )
         ;
@@ -3381,7 +3380,7 @@ py::enum_<OptixExceptionCodes>(m, "ExceptionCodes", py::arithmetic())
 #endif
 
     py::class_<pyoptix::StaticTransform>(m, "StaticTransform")
-        .def( 
+        .def(
             py::init< 
                 OptixTraversableHandle,
                 const py::list&, // 12 floats
@@ -3392,23 +3391,23 @@ py::enum_<OptixExceptionCodes>(m, "ExceptionCodes", py::arithmetic())
             py::arg( "invTransform" ) = py::list()
         )
         .def_property( "child", 
-            []( const pyoptix::StaticTransform& self ) 
+            []( const pyoptix::StaticTransform& self )
             { return self.transform.child; }, 
-            [](pyoptix::StaticTransform& self, OptixTraversableHandle val) 
+            [](pyoptix::StaticTransform& self, OptixTraversableHandle val)
             { self.transform.child= val; }
             )
         .def_property( "transform", 
-            []( const pyoptix::StaticTransform& self ) 
+            []( const pyoptix::StaticTransform& self )
             { return py::cast( self.transform.transform ); }, 
             //nullptr,
-            [](pyoptix::StaticTransform& self, const py::list& val) 
+            [](pyoptix::StaticTransform& self, const py::list& val)
             { self.setTransform( val ); }
             )
         .def_property( "invTransform", 
-            []( const pyoptix::StaticTransform& self ) 
+            []( const pyoptix::StaticTransform& self )
             { return py::cast( self.transform.invTransform ); }, 
             //nullptr,
-            [](pyoptix::StaticTransform& self, const py::list& val) 
+            [](pyoptix::StaticTransform& self, const py::list& val)
             { self.setInvTransform( val ); }
             )
         .def( "getBytes", &pyoptix::StaticTransform::getBytes )
@@ -3416,7 +3415,7 @@ py::enum_<OptixExceptionCodes>(m, "ExceptionCodes", py::arithmetic())
 
 
     py::class_<pyoptix::MatrixMotionTransform>(m, "MatrixMotionTransform")
-        .def( 
+        .def(
             py::init< 
                 OptixTraversableHandle,
                 //pyoptix::MotionOptions, 
@@ -3428,20 +3427,20 @@ py::enum_<OptixExceptionCodes>(m, "ExceptionCodes", py::arithmetic())
             py::arg( "transform"     ) = py::list() 
         )
         .def_property( "child", 
-            []( const pyoptix::MatrixMotionTransform& self ) 
+            []( const pyoptix::MatrixMotionTransform& self )
             { return self.mtransform.child; }, 
-            [](pyoptix::MatrixMotionTransform& self, OptixTraversableHandle val) 
+            [](pyoptix::MatrixMotionTransform& self, OptixTraversableHandle val)
             { self.mtransform.child= val; }
             )
         .def_property( "motionOptions", 
-            []( const pyoptix::MatrixMotionTransform& self ) 
+            []( const pyoptix::MatrixMotionTransform& self )
             { return OptixMotionOptions( self.mtransform.motionOptions ); }, 
-            [](pyoptix::MatrixMotionTransform& self, const OptixMotionOptions& val) 
+            [](pyoptix::MatrixMotionTransform& self, const OptixMotionOptions& val)
             { self.mtransform.motionOptions = val; }
             )
         .def_property( "transform", 
             nullptr,
-            [](pyoptix::MatrixMotionTransform& self, const py::list& val) 
+            [](pyoptix::MatrixMotionTransform& self, const py::list& val)
             { self.setTransform( val ); }
             )
         .def( "getBytes", &pyoptix::MatrixMotionTransform::getBytes )
@@ -3548,7 +3547,9 @@ py::enum_<OptixExceptionCodes>(m, "ExceptionCodes", py::arithmetic())
             )
         .def_property( "boundValue",
             //[](const pyoptix::ModuleCompileBoundValueEntry& self)
-            //{ return self.boundValue; },
+            //{
+            //    return self.boundValue;
+            //},
             nullptr,
             [](pyoptix::ModuleCompileBoundValueEntry& self, py::buffer val)
             { self.setBoundValue( val );  }
@@ -3580,7 +3581,9 @@ py::enum_<OptixExceptionCodes>(m, "ExceptionCodes", py::arithmetic())
             )
         .def_property( "payloadSemantics",
             //[](const pyoptix::PayloadType& self)
-            //{ return self.payloadSemantics; },
+            //{
+            //    return self.payloadSemantics;
+            //},
             nullptr,
             [](pyoptix::PayloadType& self, py::list val)
             { self.setPayloadSemantics( val );  }
@@ -3591,12 +3594,12 @@ py::enum_<OptixExceptionCodes>(m, "ExceptionCodes", py::arithmetic())
 
     py::class_<pyoptix::ModuleCompileOptions>(m, "ModuleCompileOptions")
         .def(
-            py::init<
+            py::init< 
                 int32_t,
                 OptixCompileOptimizationLevel,
                 OptixCompileDebugLevel
-                IF_OPTIX72( COMMA std::vector<pyoptix::ModuleCompileBoundValueEntry>&& )
-                IF_OPTIX74( COMMA std::vector<pyoptix::PayloadType>&&  )
+                 COMMA std::vector<pyoptix::ModuleCompileBoundValueEntry>&&
+                 COMMA std::vector<pyoptix::PayloadType>&&
                 >(),
             py::arg( "maxRegisterCount" ) = 0u,
             py::arg( "optLevel"         ) = OPTIX_COMPILE_OPTIMIZATION_DEFAULT,
@@ -3604,8 +3607,8 @@ py::enum_<OptixExceptionCodes>(m, "ExceptionCodes", py::arithmetic())
             IF_OPTIX71_ELSE( 
                 OPTIX_COMPILE_DEBUG_LEVEL_DEFAULT, OPTIX_COMPILE_DEBUG_LEVEL_LINEINFO 
             )
-            IF_OPTIX72( COMMA py::arg( "boundValues"  ) = std::vector<pyoptix::ModuleCompileBoundValueEntry>() )
-            IF_OPTIX74( COMMA py::arg( "payloadTypes" ) = std::vector<pyoptix::PayloadType>() )
+             COMMA py::arg( "boundValues"  ) = std::vector<pyoptix::ModuleCompileBoundValueEntry>()
+             COMMA py::arg( "payloadTypes" ) = std::vector<pyoptix::PayloadType>()
             )
         .def_property( "maxRegisterCount",
             [](const pyoptix::ModuleCompileOptions& self)
@@ -3631,7 +3634,9 @@ py::enum_<OptixExceptionCodes>(m, "ExceptionCodes", py::arithmetic())
         .def_property( "boundValues",
             // This doesnt do what you probably want it to so disable it
             //[](const pyoptix::ModuleCompileOptions& self)
-            //{ return self.boundValues; },
+            //{
+            //    return self.boundValues;
+            //},
             nullptr,
             [](pyoptix::ModuleCompileOptions& self,
                std::vector<pyoptix::ModuleCompileBoundValueEntry>&& val )
@@ -3642,7 +3647,9 @@ py::enum_<OptixExceptionCodes>(m, "ExceptionCodes", py::arithmetic())
         .def_property( "payloadTypes",
             // This doesnt do what you probably want it to so disable it
             //[](const pyoptix::PayloadType& self)
-            //{ return self.payloadTypes; },
+            //{
+            //    return self.payloadTypes;
+            //},
             nullptr,
             [](pyoptix::ModuleCompileOptions& self,
                std::vector<pyoptix::PayloadType>&& val )
@@ -3654,7 +3661,7 @@ py::enum_<OptixExceptionCodes>(m, "ExceptionCodes", py::arithmetic())
 
     py::class_<pyoptix::ProgramGroupDesc>(m, "ProgramGroupDesc")
         .def(
-            py::init<
+            py::init< 
                 uint32_t,
 
                 const char*,             //  raygenEntryFunctionName
@@ -3861,7 +3868,9 @@ py::enum_<OptixExceptionCodes>(m, "ExceptionCodes", py::arithmetic())
         .def_property( "payloadType",
             // This doesnt do what you probably want it to so disable it
             //[](const pyoptix::ProgramGroupOptions& self)
-            //{ return self.payload_type; },
+            //{
+            //    return self.payload_type;
+            //},
             nullptr,
             []( pyoptix::ProgramGroupOptions& self, const pyoptix::PayloadType& payload_type )
             {
@@ -3874,22 +3883,22 @@ py::enum_<OptixExceptionCodes>(m, "ExceptionCodes", py::arithmetic())
 
     py::class_<pyoptix::PipelineCompileOptions>(m, "PipelineCompileOptions")
         .def(
-            py::init<
+            py::init< 
                 bool,
                 uint32_t,
                 int32_t,
                 int32_t,
                 uint32_t,
                 const char*
-                IF_OPTIX71( COMMA int32_t )
-	    >(),
+                 COMMA int32_t
+            >(),
             py::arg( "usesMotionBlur" )=0,
             py::arg( "traversableGraphFlags" )=0u,
             py::arg( "numPayloadValues" )=0,
             py::arg( "numAttributeValues" )=0,
             py::arg( "exceptionFlags" )=0u,
             py::arg( "pipelineLaunchParamsVariableName" )=nullptr
-            IF_OPTIX71( COMMA py::arg( "usesPrimitiveTypeFlags" )=0 )
+             COMMA py::arg( "usesPrimitiveTypeFlags" )=0
             )
         .def_property( "usesMotionBlur",
             [](const pyoptix::PipelineCompileOptions& self)
@@ -3936,7 +3945,7 @@ py::enum_<OptixExceptionCodes>(m, "ExceptionCodes", py::arithmetic())
         ;
     py::class_<pyoptix::PipelineLinkOptions>(m, "PipelineLinkOptions")
         .def(
-            py::init<
+            py::init< 
                 uint32_t
 #if OPTIX_VERSION < 70700
                 COMMA OptixCompileDebugLevel
@@ -3968,7 +3977,7 @@ py::enum_<OptixExceptionCodes>(m, "ExceptionCodes", py::arithmetic())
 
     py::class_<pyoptix::ShaderBindingTable>(m, "ShaderBindingTable")
         .def(
-            py::init<
+            py::init< 
                 CUdeviceptr,
                 CUdeviceptr,
                 CUdeviceptr,
@@ -4063,7 +4072,7 @@ py::enum_<OptixExceptionCodes>(m, "ExceptionCodes", py::arithmetic())
 
     py::class_<pyoptix::StackSizes>(m, "StackSizes")
         .def(
-            py::init<
+            py::init< 
                 uint32_t,
                 uint32_t,
                 uint32_t,
@@ -4113,16 +4122,16 @@ py::enum_<OptixExceptionCodes>(m, "ExceptionCodes", py::arithmetic())
 #if OPTIX_VERSION >= 70100
     py::class_<pyoptix::BuiltinISOptions>(m, "BuiltinISOptions")
         .def(
-            py::init<
-                OptixPrimitiveType, 
+            py::init< 
+                OptixPrimitiveType,
                 bool
-                IF_OPTIX74( COMMA uint32_t )
-                IF_OPTIX74( COMMA uint32_t )
+                 COMMA uint32_t
+                 COMMA uint32_t
             >(),
             py::arg( "builtinISModuleType"                   ) = OPTIX_PRIMITIVE_TYPE_TRIANGLE,
             py::arg( "usesMotionBlur"                        ) = false
-            IF_OPTIX74( COMMA py::arg( "buildFlags"          ) = 0 )
-            IF_OPTIX74( COMMA py::arg( "curveEndcapFlags"    ) = 0 )
+             COMMA py::arg( "buildFlags"          ) = 0
+             COMMA py::arg( "curveEndcapFlags"    ) = 0
             )
         .def_property( "builtinISModuleType",
             [](const pyoptix::BuiltinISOptions& self)
@@ -4155,7 +4164,7 @@ py::enum_<OptixExceptionCodes>(m, "ExceptionCodes", py::arithmetic())
 
     
     py::class_<OptixTraversableHandle>(m, "TraversableHandle")
-        .def( py::init( []()
+        .def( py::init( []() 
            { return std::unique_ptr<OptixTraversableHandle>(new OptixTraversableHandle{} ); }
         ) )
         ;

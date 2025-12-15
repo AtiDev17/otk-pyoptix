@@ -14,13 +14,15 @@ message(VERBOSE "Finding pybind11...")
 FetchContent_Declare(
     pybind11
     GIT_REPOSITORY https://github.com/pybind/pybind11
-    GIT_TAG        v2.9.2
+    GIT_TAG        v3.0.1
     GIT_SHALLOW    TRUE
     )
 FetchContent_GetProperties(pybind11)
 if(NOT pybind11_POPULATED)
-    FetchContent_Populate(pybind11)
-    add_subdirectory(${pybind11_SOURCE_DIR} ${pybind11_BINARY_DIR})
+    FetchContent_MakeAvailable(pybind11)
+    # FIX: Use a hardcoded, absolute path for the binary directory to avoid the conflict
+    # This ensures CMake treats this as a completely separate binary tree.
+    set(PYBIND11_BUILD_DIR ${CMAKE_CURRENT_BINARY_DIR}/pybind11_build_unique)
 endif()
 
 #------------------------------------------------------------------------------
@@ -33,7 +35,7 @@ if(NOT TARGET OptiX::OptiX)
   find_package( OptiX REQUIRED )
 endif()
 if(NOT TARGET CUDA::cuda_driver)
-  find_package( CUDAToolkit 10.0 REQUIRED )
+  find_package( CUDAToolkit REQUIRED )
 endif()
 
 configure_file("${CMAKE_SOURCE_DIR}/path_util.py.in" "${CMAKE_SOURCE_DIR}/../examples/path_util.py")
@@ -59,4 +61,3 @@ add_custom_command(
     ${OptiX_INCLUDE_DIR}
     $<TARGET_FILE_DIR:optix>/include
     )
-

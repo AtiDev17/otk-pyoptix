@@ -3,3 +3,4 @@ cupy
 numpy
 Pillow
 cuda-python
+packaging

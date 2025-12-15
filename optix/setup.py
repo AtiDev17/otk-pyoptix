@@ -7,10 +7,12 @@ import re
 import sys
 import platform
 import subprocess
+import shlex
+from pathlib import Path
 
 from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
-from distutils.version import LooseVersion
+from packaging.version import parse as parse_version
 
 
 class CMakeExtension(Extension):
@@ -24,55 +26,58 @@ class CMakeBuild(build_ext):
         try:
             out = subprocess.check_output(['cmake', '--version'])
         except OSError:
-            raise RuntimeError("CMake must be installed to build the following extensions: " +
-                               ", ".join(e.name for e in self.extensions))
+            raise RuntimeError(
+                "CMake must be installed to build the following extensions: " +
+                ", ".join(e.name for e in self.extensions)
+            )
 
         if platform.system() == "Windows":
-            cmake_version = LooseVersion(re.search(r'version\s*([\d.]+)', out.decode()).group(1))
-            if cmake_version < '3.1.0':
-                raise RuntimeError("CMake >= 3.1.0 is required on Windows")
+            cmake_version_match = re.search(r'version\s*([\d.]+)', out.decode())
+            if cmake_version_match:
+                cmake_version = parse_version(cmake_version_match.group(1))
+                if cmake_version < parse_version('3.1.0'):
+                    raise RuntimeError("CMake >= 3.1.0 is required on Windows")
 
         for ext in self.extensions:
             self.build_extension(ext)
 
     def build_extension(self, ext):
-        extdir = os.path.abspath(os.path.dirname(self.get_ext_fullpath(ext.name)))
-        # required for auto-detection of auxiliary "native" libs
-        if not extdir.endswith(os.path.sep):
-            extdir += os.path.sep
+        extdir = Path(self.get_ext_fullpath(ext.name)).parent.resolve()
 
-        cmake_args = ['-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=' + extdir,
-                      '-DPYTHON_EXECUTABLE=' + sys.executable]
+        cmake_args = [
+            f'-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={extdir}',
+            f'-DPYTHON_EXECUTABLE={sys.executable}'
+        ]
 
         cfg = 'Debug' if self.debug else 'Release'
         build_args = ['--config', cfg]
 
         if platform.system() == "Windows":
-            cmake_args += ['-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{}={}'.format(cfg.upper(), extdir)]
-            if sys.maxsize > 2**32:
+            cmake_args += [f'-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{cfg.upper()}={extdir}']
+            if sys.maxsize > 2 ** 32:
                 cmake_args += ['-A', 'x64']
             build_args += ['--', '/m']
         else:
-            cmake_args += ['-DCMAKE_BUILD_TYPE=' + cfg]
-            build_args += ['--', '-j2']
+            cmake_args += [f'-DCMAKE_BUILD_TYPE={cfg}']
+            build_args += ['--', '-j']
 
         if "PYOPTIX_CMAKE_ARGS" in os.environ:
-            cmake_args += os.environ[ 'PYOPTIX_CMAKE_ARGS' ].split()
+            cmake_args += shlex.split(os.environ['PYOPTIX_CMAKE_ARGS'])
 
-        # the following is only needed for 7.0 compiles, because the optix device header of that
-        # first version included stddef.h.
         if "PYOPTIX_STDDEF_DIR" in os.environ:
-            cmake_args += [ "-DOptiX_STDDEF_DIR={}".format(os.environ[ 'PYOPTIX_STDDEF_DIR' ]) ]
+            cmake_args += [f"-DOptiX_STDDEF_DIR={os.environ['PYOPTIX_STDDEF_DIR']}"]
 
         env = os.environ.copy()
-        env['CXXFLAGS'] = '{} -DVERSION_INFO=\\"{}\\"'.format(env.get('CXXFLAGS', ''),
-                                                              self.distribution.get_version())
+        env['CXXFLAGS'] = f"{env.get('CXXFLAGS', '')} -DVERSION_INFO=\"{self.distribution.get_version()}\""
+
         if not os.path.exists(self.build_temp):
             os.makedirs(self.build_temp)
-        print( "CMAKE CMD: <<<{}>>>".format( ' '.join( ['cmake', ext.sourcedir] + cmake_args ) ) )
-        subprocess.check_call(['cmake', ext.sourcedir] + cmake_args, cwd=self.build_temp, env=env)
-        subprocess.check_call(['cmake', '--build', '.'] + build_args, cwd=self.build_temp)
 
+        config_command = ['cmake', ext.sourcedir] + cmake_args
+        print(f"CMAKE CMD: <<<{shlex.join(config_command)}>>>")
+
+        subprocess.check_call(config_command, cwd=self.build_temp, env=env)
+        subprocess.check_call(['cmake', '--build', '.'] + build_args, cwd=self.build_temp)
 
 
 setup(
