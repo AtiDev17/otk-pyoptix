@@ -1,6 +1,6 @@
 # PyOptiX
 
-Python bindings for OptiX 7.
+Python bindings for OptiX 9.
 
 ## Installation
 
