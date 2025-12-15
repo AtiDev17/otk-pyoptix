@@ -2643,9 +2643,9 @@ PYBIND11_MODULE( optix, m )
                 .value( "PRIMITIVE_TYPE_FLAGS_ROUND_QUADRATIC_BSPLINE_ROCAPS", OPTIX_PRIMITIVE_TYPE_FLAGS_ROUND_QUADRATIC_BSPLINE_ROCAPS )
                 .value( "PRIMITIVE_TYPE_FLAGS_ROUND_CUBIC_BSPLINE_ROCAPS", OPTIX_PRIMITIVE_TYPE_FLAGS_ROUND_CUBIC_BSPLINE_ROCAPS )
                 .value( "PRIMITIVE_TYPE_FLAGS_ROUND_CUBIC_BEZIER_ROCAPS", OPTIX_PRIMITIVE_TYPE_FLAGS_ROUND_CUBIC_BEZIER_ROCAPS )
-                .value( "PRIMITIVE_TYPE_FLAGS_ROUND_CATMULLROM_ROCAPS", OPTIX_PRIMITIVE_TYPE_FLAGS_ROUND_CATMULLROM_ROCAPS )
-                .export_values();    #endif
-    
+                            .value( "PRIMITIVE_TYPE_FLAGS_ROUND_CATMULLROM_ROCAPS", OPTIX_PRIMITIVE_TYPE_FLAGS_ROUND_CATMULLROM_ROCAPS )
+                            .export_values();
+                #endif    
         py::enum_<OptixBuildInputType>(m, "BuildInputType", py::arithmetic())
             .value( "BUILD_INPUT_TYPE_TRIANGLES", OPTIX_BUILD_INPUT_TYPE_TRIANGLES )
             .value( "BUILD_INPUT_TYPE_CUSTOM_PRIMITIVES", OPTIX_BUILD_INPUT_TYPE_CUSTOM_PRIMITIVES )
@@ -2739,9 +2739,15 @@ PYBIND11_MODULE( optix, m )
             .value( "DENOISER_MODEL_KIND_TEMPORAL", OPTIX_DENOISER_MODEL_KIND_TEMPORAL )
             .value( "DENOISER_MODEL_KIND_TEMPORAL_AOV", OPTIX_DENOISER_MODEL_KIND_TEMPORAL_AOV )
             .value( "DENOISER_MODEL_KIND_UPSCALE2X", OPTIX_DENOISER_MODEL_KIND_UPSCALE2X )
-            .value( "DENOISER_MODEL_KIND_TEMPORAL_UPSCALE2X", OPTIX_DENOISER_MODEL_KIND_TEMPORAL_UPSCALE2X )
-            .export_values();
-    py::enum_<OptixRayFlags>(m, "RayFlags", py::arithmetic())
+                    .value( "DENOISER_MODEL_KIND_TEMPORAL_UPSCALE2X", OPTIX_DENOISER_MODEL_KIND_TEMPORAL_UPSCALE2X )
+                    .export_values();
+            
+                py::enum_<OptixDenoiserAlphaMode>(m, "DenoiserAlphaMode", py::arithmetic())
+                    .value( "DENOISER_ALPHA_MODE_COPY", OPTIX_DENOISER_ALPHA_MODE_COPY )
+                    .value( "DENOISER_ALPHA_MODE_DENOISE", OPTIX_DENOISER_ALPHA_MODE_DENOISE )
+                    .export_values();
+            
+                py::enum_<OptixRayFlags>(m, "RayFlags", py::arithmetic())
         .value( "RAY_FLAG_NONE", OPTIX_RAY_FLAG_NONE )
         .value( "RAY_FLAG_DISABLE_ANYHIT", OPTIX_RAY_FLAG_DISABLE_ANYHIT )
         .value( "RAY_FLAG_ENFORCE_ANYHIT", OPTIX_RAY_FLAG_ENFORCE_ANYHIT )
